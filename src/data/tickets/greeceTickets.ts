@@ -1,0 +1,26 @@
+import type { DestinationTicket } from '../../game/gameTypes';
+
+export const greeceDestinationTickets: DestinationTicket[] = [
+  { id: 'athens-thessaloniki', from: 'athens', to: 'thessaloniki', points: 9 },
+  { id: 'athens-rhodes', from: 'athens', to: 'rhodes', points: 16 },
+  { id: 'athens-heraklion', from: 'athens', to: 'heraklion', points: 13 },
+  { id: 'athens-ioannina', from: 'athens', to: 'ioannina', points: 10 },
+  { id: 'thessaloniki-patras', from: 'thessaloniki', to: 'patras', points: 12 },
+  { id: 'thessaloniki-rhodes', from: 'thessaloniki', to: 'rhodes', points: 20 },
+  { id: 'orestiada-athens', from: 'orestiada', to: 'athens', points: 16 },
+  { id: 'orestiada-kalamata', from: 'orestiada', to: 'kalamata', points: 21 },
+  { id: 'florina-athens', from: 'florina', to: 'athens', points: 14 },
+  { id: 'florina-heraklion', from: 'florina', to: 'heraklion', points: 22 },
+  { id: 'ioannina-rhodes', from: 'ioannina', to: 'rhodes', points: 21 },
+  { id: 'corfu-athens', from: 'corfu', to: 'athens', points: 13 },
+  { id: 'corfu-heraklion', from: 'corfu', to: 'heraklion', points: 18 },
+  { id: 'patras-mytilene', from: 'patras', to: 'mytilene', points: 16 },
+  { id: 'kalamata-thessaloniki', from: 'kalamata', to: 'thessaloniki', points: 15 },
+  { id: 'monemvasia-orestiada', from: 'monemvasia', to: 'orestiada', points: 22 },
+  { id: 'chania-thessaloniki', from: 'chania', to: 'thessaloniki', points: 18 },
+  { id: 'samos-athens', from: 'samos', to: 'athens', points: 12 },
+  { id: 'mytilene-kalamata', from: 'mytilene', to: 'kalamata', points: 18 },
+  { id: 'rhodes-heraklion', from: 'rhodes', to: 'heraklion', points: 10 },
+  { id: 'mount-athos-chios', from: 'mount-athos', to: 'chios', points: 11 },
+  { id: 'zakynthos-naxos', from: 'zakynthos', to: 'naxos', points: 15 },
+];
