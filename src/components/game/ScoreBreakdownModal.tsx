@@ -77,6 +77,7 @@ export function ScoreBreakdownModal({
                     {getCityName(destination.from)} to {getCityName(destination.to)}
                   </span>
                   <small>
+                    {destination.category === 'long' ? 'LONG | ' : ''}
                     {destination.completed
                       ? destination.usedStation
                         ? 'Completed using station'

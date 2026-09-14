@@ -6,6 +6,7 @@ interface LobbyProps {
   gameConfig: GameConfigView;
   message?: string;
   onSetStartingTrains: (value: number) => void;
+  onSetLongestRouteBonus: (value: number) => void;
   onStart: () => void;
 }
 
@@ -15,10 +16,16 @@ export function Lobby({
   gameConfig,
   message,
   onSetStartingTrains,
+  onSetLongestRouteBonus,
   onStart,
 }: LobbyProps) {
   const clampStartingTrains = (value: number) =>
     Math.min(gameConfig.maxStartingTrains, Math.max(gameConfig.minStartingTrains, value));
+  const clampLongestRouteBonus = (value: number) =>
+    Math.min(
+      gameConfig.maxLongestRouteBonus,
+      Math.max(gameConfig.minLongestRouteBonus, value),
+    );
 
   return (
     <main className="join-screen">
@@ -37,49 +44,100 @@ export function Lobby({
           ))}
         </div>
         <section className="lobby-config">
-          <div>
-            <p className="panel-label">Starting trains per player</p>
-            <p>
-              Allowed: {gameConfig.minStartingTrains}-{gameConfig.maxStartingTrains}
-            </p>
-            <p>Standard game: {gameConfig.standardStartingTrains}</p>
-          </div>
-          {isHost ? (
-            <div className="lobby-train-control">
-              <button
-                type="button"
-                aria-label="Decrease starting trains"
-                disabled={gameConfig.startingTrains <= gameConfig.minStartingTrains}
-                onClick={() => onSetStartingTrains(clampStartingTrains(gameConfig.startingTrains - 1))}
-              >
-                -
-              </button>
-              <input
-                type="number"
-                min={gameConfig.minStartingTrains}
-                max={gameConfig.maxStartingTrains}
-                step={1}
-                value={gameConfig.startingTrains}
-                onChange={(event) => {
-                  const value = Number(event.currentTarget.value);
-
-                  if (Number.isInteger(value)) {
-                    onSetStartingTrains(clampStartingTrains(value));
-                  }
-                }}
-              />
-              <button
-                type="button"
-                aria-label="Increase starting trains"
-                disabled={gameConfig.startingTrains >= gameConfig.maxStartingTrains}
-                onClick={() => onSetStartingTrains(clampStartingTrains(gameConfig.startingTrains + 1))}
-              >
-                +
-              </button>
+          <div className="lobby-config-row">
+            <div>
+              <p className="panel-label">Starting trains per player</p>
+              <p>
+                Allowed: {gameConfig.minStartingTrains}-{gameConfig.maxStartingTrains}
+              </p>
+              <p>Standard game: {gameConfig.standardStartingTrains}</p>
             </div>
-          ) : (
-            <strong className="lobby-train-readout">{gameConfig.startingTrains}</strong>
-          )}
+            {isHost ? (
+              <div className="lobby-train-control">
+                <button
+                  type="button"
+                  aria-label="Decrease starting trains"
+                  disabled={gameConfig.startingTrains <= gameConfig.minStartingTrains}
+                  onClick={() => onSetStartingTrains(clampStartingTrains(gameConfig.startingTrains - 1))}
+                >
+                  -
+                </button>
+                <input
+                  type="number"
+                  min={gameConfig.minStartingTrains}
+                  max={gameConfig.maxStartingTrains}
+                  step={1}
+                  value={gameConfig.startingTrains}
+                  onChange={(event) => {
+                    const value = Number(event.currentTarget.value);
+
+                    if (Number.isInteger(value)) {
+                      onSetStartingTrains(clampStartingTrains(value));
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  aria-label="Increase starting trains"
+                  disabled={gameConfig.startingTrains >= gameConfig.maxStartingTrains}
+                  onClick={() => onSetStartingTrains(clampStartingTrains(gameConfig.startingTrains + 1))}
+                >
+                  +
+                </button>
+              </div>
+            ) : (
+              <strong className="lobby-train-readout">{gameConfig.startingTrains}</strong>
+            )}
+          </div>
+          <div className="lobby-config-row">
+            <div>
+              <p className="panel-label">Longest route bonus</p>
+              <p>
+                Allowed: {gameConfig.minLongestRouteBonus}-{gameConfig.maxLongestRouteBonus}
+              </p>
+              <p>Standard game: {gameConfig.standardLongestRouteBonus}</p>
+            </div>
+            {isHost ? (
+              <div className="lobby-train-control">
+                <button
+                  type="button"
+                  aria-label="Decrease longest route bonus"
+                  disabled={gameConfig.longestRouteBonus <= gameConfig.minLongestRouteBonus}
+                  onClick={() =>
+                    onSetLongestRouteBonus(clampLongestRouteBonus(gameConfig.longestRouteBonus - 1))
+                  }
+                >
+                  -
+                </button>
+                <input
+                  type="number"
+                  min={gameConfig.minLongestRouteBonus}
+                  max={gameConfig.maxLongestRouteBonus}
+                  step={1}
+                  value={gameConfig.longestRouteBonus}
+                  onChange={(event) => {
+                    const value = Number(event.currentTarget.value);
+
+                    if (Number.isInteger(value)) {
+                      onSetLongestRouteBonus(clampLongestRouteBonus(value));
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  aria-label="Increase longest route bonus"
+                  disabled={gameConfig.longestRouteBonus >= gameConfig.maxLongestRouteBonus}
+                  onClick={() =>
+                    onSetLongestRouteBonus(clampLongestRouteBonus(gameConfig.longestRouteBonus + 1))
+                  }
+                >
+                  +
+                </button>
+              </div>
+            ) : (
+              <strong className="lobby-train-readout">{gameConfig.longestRouteBonus}</strong>
+            )}
+          </div>
         </section>
         {isHost ? (
           <button type="button" disabled={players.length < 2} onClick={onStart}>

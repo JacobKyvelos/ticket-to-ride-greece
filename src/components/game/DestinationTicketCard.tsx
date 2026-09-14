@@ -26,7 +26,10 @@ export function DestinationTicketCard({
         <strong>
           {getCityName(ticket.from)} to {getCityName(ticket.to)}
         </strong>
-        <small>{ticket.points} points</small>
+        <small>
+          {ticket.category === 'long' && <span className="ticket-category-badge">Long ticket</span>}
+          {ticket.points} points
+        </small>
       </span>
     </button>
   );

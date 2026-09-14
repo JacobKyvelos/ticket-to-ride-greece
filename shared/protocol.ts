@@ -30,6 +30,10 @@ export interface GameConfigView {
   minStartingTrains: number;
   maxStartingTrains: number;
   standardStartingTrains: number;
+  longestRouteBonus: number;
+  minLongestRouteBonus: number;
+  maxLongestRouteBonus: number;
+  standardLongestRouteBonus: number;
 }
 
 export interface ClientPlayerView {
@@ -102,6 +106,7 @@ export type ClientGameEvent =
 export type ClientMessage =
   | { type: 'JOIN_GAME'; name: string }
   | { type: 'SET_STARTING_TRAINS'; value: number }
+  | { type: 'SET_LONGEST_ROUTE_BONUS'; value: number }
   | { type: 'START_GAME' }
   | { type: 'RESET_GAME' }
   | { type: 'DRAW_FACE_UP_CARD'; index: number }

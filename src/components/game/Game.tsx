@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Board } from '../board/Board';
 import { BottomCardBar } from './BottomCardBar';
 import { DestinationTicketSelectionPanel } from './DestinationTicketSelectionPanel';
@@ -20,6 +20,8 @@ export function Game() {
   const { connectionStatus, view, clientMessage, eventMessage, latestGameEvent, send } = useGameSocket();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [scoreBreakdownOpen, setScoreBreakdownOpen] = useState(false);
+  const [ticketSelectionMinimized, setTicketSelectionMinimized] = useState(false);
+  const [selectedPendingTicketIds, setSelectedPendingTicketIds] = useState<string[]>([]);
   const playerColorsById = useMemo(
     () => Object.fromEntries((view?.players ?? []).map((player) => [player.id, player.color])),
     [view?.players],
@@ -33,6 +35,20 @@ export function Game() {
     [],
   );
   const getCityName = (cityId: string) => citiesById.get(cityId)?.name ?? cityId;
+  const pendingTicketSelectionKey = view?.pendingDestinationTicketSelection
+    ? `${view.pendingDestinationTicketSelection.playerId}-${view.pendingDestinationTicketSelection.mode}-${view.pendingDestinationTicketSelection.tickets.map((ticket) => ticket.id).join('|')}`
+    : '';
+
+  useEffect(() => {
+    if (!view?.pendingDestinationTicketSelection) {
+      setTicketSelectionMinimized(false);
+      setSelectedPendingTicketIds([]);
+      return;
+    }
+
+    setTicketSelectionMinimized(false);
+    setSelectedPendingTicketIds(view.pendingDestinationTicketSelection.tickets.map((ticket) => ticket.id));
+  }, [pendingTicketSelectionKey]);
 
   if (!view?.connectedPlayerId) {
     return (
@@ -52,6 +68,7 @@ export function Game() {
         gameConfig={view.gameConfig}
         message={clientMessage || view.statusMessage}
         onSetStartingTrains={(value) => send({ type: 'SET_STARTING_TRAINS', value })}
+        onSetLongestRouteBonus={(value) => send({ type: 'SET_LONGEST_ROUTE_BONUS', value })}
         onStart={() => send({ type: 'START_GAME' })}
       />
     );
@@ -90,6 +107,7 @@ export function Game() {
         fromName: getCityName(destination.from),
         toName: getCityName(destination.to),
         points: destination.points,
+        category: destination.category,
         status,
       };
     }) ?? [];
@@ -103,6 +121,14 @@ export function Game() {
     view.connectedPlayerId === view.currentPlayerId &&
     (view.gamePhase === 'playing' || view.gamePhase === 'finalRound');
   const canStartAction = canAct && view.turnAction === 'none';
+  const pendingTicketSummaries =
+    view.pendingDestinationTicketSelection?.tickets.map((ticket) => ({
+      id: ticket.id,
+      fromName: getCityName(ticket.from),
+      toName: getCityName(ticket.to),
+      points: ticket.points,
+      category: ticket.category,
+    })) ?? [];
 
   return (
     <main className="app">
@@ -137,6 +163,16 @@ export function Game() {
               destinationTicketDeckCount={view.destinationTicketDeckCount}
               cardsDrawnThisTurn={view.cardsDrawnThisTurn}
               activeTicketSummaries={activeTicketSummaries}
+              pendingTicketSelection={
+                view.pendingDestinationTicketSelection
+                  ? {
+                      mode: view.pendingDestinationTicketSelection.mode,
+                      minKeep: view.pendingDestinationTicketSelection.minKeep,
+                      tickets: pendingTicketSummaries,
+                      minimized: ticketSelectionMinimized,
+                    }
+                  : undefined
+              }
               activeDestinationScore={activeDestinationScore}
               activeProjectedTotal={activeProjectedTotal}
               canDrawTrainCards={
@@ -158,6 +194,7 @@ export function Game() {
               onDrawFaceUpCard={(index) => send({ type: 'DRAW_FACE_UP_CARD', index })}
               onDrawDeckCard={() => send({ type: 'DRAW_HIDDEN_CARD' })}
               onDrawDestinationTickets={() => send({ type: 'DRAW_DESTINATION_TICKETS' })}
+              onReviewPendingDestinationTickets={() => setTicketSelectionMinimized(false)}
               onBeginPlaceStation={() => send({ type: 'BEGIN_PLACE_STATION' })}
               onOpenScoreBreakdown={() => setScoreBreakdownOpen(true)}
               onResetGame={() => send({ type: 'RESET_GAME' })}
@@ -236,13 +273,18 @@ export function Game() {
           />
         </div>
       </div>
-      {view.pendingDestinationTicketSelection && (
+      {view.pendingDestinationTicketSelection && !ticketSelectionMinimized && (
         <DestinationTicketSelectionPanel
           playerName={viewerPlayer?.name ?? 'Player'}
           tickets={view.pendingDestinationTicketSelection.tickets}
           minKeep={view.pendingDestinationTicketSelection.minKeep}
+          selectedTicketIds={selectedPendingTicketIds}
+          onSelectedTicketIdsChange={setSelectedPendingTicketIds}
           getCityName={getCityName}
-          onConfirm={(ticketIds) => send({ type: 'KEEP_DESTINATION_TICKETS', ticketIds })}
+          onMinimize={() => setTicketSelectionMinimized(true)}
+          onConfirm={(ticketIds) => {
+            send({ type: 'KEEP_DESTINATION_TICKETS', ticketIds });
+          }}
         />
       )}
       {scoreBreakdownOpen && scoreBreakdown && (

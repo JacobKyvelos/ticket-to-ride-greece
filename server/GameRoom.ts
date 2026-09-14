@@ -8,6 +8,7 @@ import {
   calculateDestinationTicketBreakdown,
   calculateFinalScores,
   calculatePlayerScoreBreakdown,
+  DEFAULT_LONGEST_ROUTE_BONUS,
 } from '../src/game/scoring.js';
 import { countCards } from '../src/game/trainCards.js';
 import type {
@@ -21,6 +22,8 @@ import type {
 const PLAYER_COLORS = ['#1f6f8b', '#b23a48', '#6b8e23', '#6f4da8', '#b7791f'];
 const STANDARD_STARTING_TRAINS = 45;
 const MIN_STARTING_TRAINS = 1;
+const MIN_LONGEST_ROUTE_BONUS = 0;
+const MAX_LONGEST_ROUTE_BONUS = 100;
 
 interface Connection {
   socket: WebSocket;
@@ -39,6 +42,7 @@ export class GameRoom {
   private state?: GameState;
   private gameConfig = {
     startingTrains: STANDARD_STARTING_TRAINS,
+    longestRouteBonus: DEFAULT_LONGEST_ROUTE_BONUS,
   };
   private readonly maxStartingTrains = getTotalRouteSpaces(greeceMapData.routes);
 
@@ -76,6 +80,11 @@ export class GameRoom {
 
       if (message.type === 'SET_STARTING_TRAINS') {
         this.setStartingTrains(connection, message.value);
+        return;
+      }
+
+      if (message.type === 'SET_LONGEST_ROUTE_BONUS') {
+        this.setLongestRouteBonus(connection, message.value);
         return;
       }
 
@@ -168,6 +177,37 @@ export class GameRoom {
     this.gameConfig = {
       ...this.gameConfig,
       startingTrains: rawValue,
+    };
+    this.broadcastViews();
+  }
+
+  private setLongestRouteBonus(connection: Connection, rawValue: number) {
+    if (!this.isHost(connection.playerId)) {
+      this.reject(connection.socket, 'Only the host can change game setup.');
+      return;
+    }
+
+    if (this.state) {
+      this.reject(connection.socket, 'Longest route bonus cannot be changed after the game starts.');
+      return;
+    }
+
+    if (!Number.isInteger(rawValue)) {
+      this.reject(connection.socket, 'Longest route bonus must be a whole number.');
+      return;
+    }
+
+    if (rawValue < MIN_LONGEST_ROUTE_BONUS || rawValue > MAX_LONGEST_ROUTE_BONUS) {
+      this.reject(
+        connection.socket,
+        `Longest route bonus must be between ${MIN_LONGEST_ROUTE_BONUS} and ${MAX_LONGEST_ROUTE_BONUS}.`,
+      );
+      return;
+    }
+
+    this.gameConfig = {
+      ...this.gameConfig,
+      longestRouteBonus: rawValue,
     };
     this.broadcastViews();
   }
@@ -348,6 +388,7 @@ export class GameRoom {
             this.state.routeOwnership,
             this.state.stationOwnership,
             greeceMapData.routes,
+            this.gameConfig.longestRouteBonus,
           )
         : undefined;
 
@@ -409,6 +450,7 @@ export class GameRoom {
             this.state?.routeOwnership ?? {},
             this.state?.stationOwnership ?? {},
             greeceMapData.routes,
+            this.gameConfig.longestRouteBonus,
           )
         : undefined;
 
@@ -752,6 +794,10 @@ export class GameRoom {
       minStartingTrains: MIN_STARTING_TRAINS,
       maxStartingTrains: this.maxStartingTrains,
       standardStartingTrains: STANDARD_STARTING_TRAINS,
+      longestRouteBonus: this.gameConfig.longestRouteBonus,
+      minLongestRouteBonus: MIN_LONGEST_ROUTE_BONUS,
+      maxLongestRouteBonus: MAX_LONGEST_ROUTE_BONUS,
+      standardLongestRouteBonus: DEFAULT_LONGEST_ROUTE_BONUS,
     };
   }
 }

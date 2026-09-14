@@ -38,11 +38,14 @@ export type TrainDrawSource = 'deck' | 'faceUp';
 
 export type GamePhase = 'initialTickets' | 'playing' | 'finalRound' | 'finished';
 
+export type DestinationTicketCategory = 'regular' | 'long';
+
 export interface DestinationTicket {
   id: string;
   from: string;
   to: string;
   points: number;
+  category: DestinationTicketCategory;
 }
 
 export interface PaymentOption {
@@ -95,6 +98,7 @@ export interface GameState {
   pendingTunnelAttempt?: PendingTunnelAttempt;
   pendingStationPlacement?: PendingStationPlacement;
   destinationTicketDeck: DestinationTicket[];
+  longDestinationTicketDeck: DestinationTicket[];
   pendingDestinationTicketSelection?: PendingDestinationTicketSelection;
   setupPlayerIndex: number;
   finalRoundTriggerPlayerId?: string;

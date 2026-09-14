@@ -8,6 +8,7 @@
     "server": "tsx server/index.ts",
     "server:build": "tsc -p tsconfig.server.json",
     "build": "tsc -b && npm run server:build && vite build",
+    "analyze:tickets": "tsx scripts/analyzeDestinationTickets.ts",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -8,10 +8,12 @@ export const ROUTE_SCORE_BY_LENGTH: Record<number, number> = {
   4: 7,
   5: 10,
   6: 15,
+  7: 18,
+  8: 21,
 };
 
 export const UNUSED_STATION_POINTS = 4;
-export const LONGEST_ROUTE_BONUS = 10;
+export const DEFAULT_LONGEST_ROUTE_BONUS = 10;
 
 export interface DestinationTicketResult {
   ticket: DestinationTicket;
@@ -44,6 +46,7 @@ export interface DestinationScoreDetail {
   from: string;
   to: string;
   points: number;
+  category: DestinationTicket['category'];
   completed: boolean;
   usedStation: boolean;
   scoreContribution: number;
@@ -168,6 +171,7 @@ export function calculatePlayerScoreBreakdown(
   routeOwnership: RouteOwnership,
   stationOwnership: StationOwnership,
   mapRoutes: Route[],
+  longestRouteBonusValue = DEFAULT_LONGEST_ROUTE_BONUS,
 ): PlayerScoreBreakdown {
   const routeBreakdown = calculateRouteScoreBreakdown(player.id, routeOwnership, mapRoutes);
   const destinations = calculateDestinationTicketBreakdown(
@@ -181,6 +185,7 @@ export function calculatePlayerScoreBreakdown(
     from: result.ticket.from,
     to: result.ticket.to,
     points: result.ticket.points,
+    category: result.ticket.category,
     completed: result.connected,
     usedStation: result.usedStation,
     scoreContribution: result.score,
@@ -200,7 +205,7 @@ export function calculatePlayerScoreBreakdown(
   const longestRouteLength = longestLengths.get(player.id) ?? 0;
   const longestRouteBonus =
     longestRouteLength > 0 && longestRouteLength === tableLongestRouteLength
-      ? LONGEST_ROUTE_BONUS
+      ? longestRouteBonusValue
       : 0;
   const projectedTotal =
     routeBreakdown.routeSubtotal + destinationSubtotal + stationBonus + longestRouteBonus;
@@ -276,6 +281,7 @@ export function calculateFinalScores(
   routeOwnership: RouteOwnership,
   stationOwnership: StationOwnership,
   mapRoutes: Route[],
+  longestRouteBonusValue = DEFAULT_LONGEST_ROUTE_BONUS,
 ): FinalScoreBreakdown[] {
   const longestLengths = new Map(
     players.map((player) => [
@@ -292,6 +298,7 @@ export function calculateFinalScores(
       routeOwnership,
       stationOwnership,
       mapRoutes,
+      longestRouteBonusValue,
     );
     const completedDestinationPoints = scoreBreakdown.destinations
       .filter((result) => result.completed)
@@ -303,7 +310,7 @@ export function calculateFinalScores(
     const longestRouteLength = longestLengths.get(player.id) ?? 0;
     const longestRouteBonus =
       longestRouteLength > 0 && longestRouteLength === tableLongestRouteLength
-        ? LONGEST_ROUTE_BONUS
+        ? longestRouteBonusValue
         : 0;
     const totalScore =
       player.score +

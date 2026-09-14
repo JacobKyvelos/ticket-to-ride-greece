@@ -1,5 +1,8 @@
 import type { Route } from '../types/map';
-import { greeceDestinationTickets } from '../data/tickets/greeceTickets';
+import {
+  greeceLongDestinationTickets,
+  greeceRegularDestinationTickets,
+} from '../data/tickets/greeceTickets';
 import type { DestinationTicket, GameState, PaymentOption, Player } from './gameTypes';
 import { getRouteScore } from './scoring';
 import {
@@ -55,8 +58,13 @@ export const createInitialGameState = (
   const startingTrains = options.startingTrains ?? STARTING_TRAINS;
   let trainDeck = shuffleCards(createTrainDeck());
   let trainDiscardPile: GameState['trainDiscardPile'] = [];
-  let destinationTicketDeck = shuffleCards(greeceDestinationTickets);
+  let destinationTicketDeck = shuffleCards(greeceRegularDestinationTickets);
+  let longDestinationTicketDeck = shuffleCards(greeceLongDestinationTickets);
   let players = createPlayers(playerConfigs, startingTrains);
+
+  if (players.length > longDestinationTicketDeck.length) {
+    throw new Error('Not enough long destination tickets for the current player count.');
+  }
 
   for (let cardIndex = 0; cardIndex < STARTING_HAND_SIZE; cardIndex += 1) {
     players = players.map((player) => {
@@ -72,8 +80,12 @@ export const createInitialGameState = (
 
   const faceUpResult = maintainFaceUpCards([], { trainDeck, trainDiscardPile });
   const firstSetupPlayer = players[0];
-  const firstTicketDraw = drawDestinationTickets(destinationTicketDeck, 3);
+  const firstTicketDraw = drawInitialDestinationTicketSelection(
+    longDestinationTicketDeck,
+    destinationTicketDeck,
+  );
   destinationTicketDeck = firstTicketDraw.destinationTicketDeck;
+  longDestinationTicketDeck = firstTicketDraw.longDestinationTicketDeck;
 
   return {
     players,
@@ -90,6 +102,7 @@ export const createInitialGameState = (
     deckOnlyDrawRefreshCount: 0,
     turnAction: 'none',
     destinationTicketDeck,
+    longDestinationTicketDeck,
     pendingDestinationTicketSelection: {
       mode: 'setup',
       playerId: firstSetupPlayer.id,
@@ -122,6 +135,20 @@ function drawDestinationTickets(destinationTicketDeck: DestinationTicket[], coun
   return {
     tickets: destinationTicketDeck.slice(0, count),
     destinationTicketDeck: destinationTicketDeck.slice(count),
+  };
+}
+
+function drawInitialDestinationTicketSelection(
+  longDestinationTicketDeck: DestinationTicket[],
+  destinationTicketDeck: DestinationTicket[],
+) {
+  const longResult = drawDestinationTickets(longDestinationTicketDeck, 1);
+  const regularResult = drawDestinationTickets(destinationTicketDeck, 3);
+
+  return {
+    tickets: [...longResult.tickets, ...regularResult.tickets],
+    longDestinationTicketDeck: longResult.destinationTicketDeck,
+    destinationTicketDeck: regularResult.destinationTicketDeck,
   };
 }
 
@@ -790,17 +817,23 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (pendingSelection.mode === 'setup') {
         const nextSetupPlayerIndex = state.setupPlayerIndex + 1;
         const nextSetupPlayer = players[nextSetupPlayerIndex];
-        let destinationTicketDeck = [...state.destinationTicketDeck, ...rejectedTickets];
+        let destinationTicketDeck = state.destinationTicketDeck;
+        let longDestinationTicketDeck = state.longDestinationTicketDeck;
 
         if (nextSetupPlayer) {
-          const result = drawDestinationTickets(destinationTicketDeck, 3);
+          const result = drawInitialDestinationTicketSelection(
+            longDestinationTicketDeck,
+            destinationTicketDeck,
+          );
           destinationTicketDeck = result.destinationTicketDeck;
+          longDestinationTicketDeck = result.longDestinationTicketDeck;
 
           return {
             ...state,
             players,
             currentPlayerId: nextSetupPlayer.id,
             destinationTicketDeck,
+            longDestinationTicketDeck,
             pendingDestinationTicketSelection: {
               mode: 'setup',
               playerId: nextSetupPlayer.id,
@@ -818,6 +851,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           currentPlayerId: players[0]?.id ?? state.currentPlayerId,
           gamePhase: 'playing',
           destinationTicketDeck,
+          longDestinationTicketDeck: [],
           pendingDestinationTicketSelection: undefined,
           setupPlayerIndex: 0,
           turnAction: 'none',

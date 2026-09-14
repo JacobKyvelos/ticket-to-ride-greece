@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import type { DestinationTicket } from '../../game/gameTypes';
 import { DestinationTicketCard } from './DestinationTicketCard';
 
@@ -6,7 +5,10 @@ interface DestinationTicketSelectionPanelProps {
   playerName: string;
   tickets: DestinationTicket[];
   minKeep: number;
+  selectedTicketIds: string[];
+  onSelectedTicketIdsChange: (ticketIds: string[]) => void;
   getCityName: (cityId: string) => string;
+  onMinimize: () => void;
   onConfirm: (keptTicketIds: string[]) => void;
 }
 
@@ -14,22 +16,17 @@ export function DestinationTicketSelectionPanel({
   playerName,
   tickets,
   minKeep,
+  selectedTicketIds,
+  onSelectedTicketIdsChange,
   getCityName,
+  onMinimize,
   onConfirm,
 }: DestinationTicketSelectionPanelProps) {
-  const [selectedTicketIds, setSelectedTicketIds] = useState(() =>
-    tickets.map((ticket) => ticket.id),
-  );
-
-  useEffect(() => {
-    setSelectedTicketIds(tickets.map((ticket) => ticket.id));
-  }, [tickets]);
-
   const toggleTicket = (ticketId: string) => {
-    setSelectedTicketIds((current) =>
-      current.includes(ticketId)
-        ? current.filter((selectedTicketId) => selectedTicketId !== ticketId)
-        : [...current, ticketId],
+    onSelectedTicketIdsChange(
+      selectedTicketIds.includes(ticketId)
+        ? selectedTicketIds.filter((selectedTicketId) => selectedTicketId !== ticketId)
+        : [...selectedTicketIds, ticketId],
     );
   };
 
@@ -43,12 +40,17 @@ export function DestinationTicketSelectionPanel({
         aria-modal="true"
         aria-labelledby="ticket-selection-title"
       >
-        <div>
-          <p className="panel-label">Destination tickets</p>
-          <h2 id="ticket-selection-title">Choose your destination tickets</h2>
-          <p>
-            {playerName}, keep at least {minKeep}.
-          </p>
+        <div className="ticket-selection-modal__header">
+          <div>
+            <p className="panel-label">Destination tickets</p>
+            <h2 id="ticket-selection-title">Choose your destination tickets</h2>
+            <p>
+              {playerName}, keep at least {minKeep}.
+            </p>
+          </div>
+          <button type="button" className="secondary-button" onClick={onMinimize}>
+            Minimize
+          </button>
         </div>
 
         <div className="destination-ticket-options">
@@ -63,9 +65,11 @@ export function DestinationTicketSelectionPanel({
           ))}
         </div>
 
-        <button type="button" disabled={!canConfirm} onClick={() => onConfirm(selectedTicketIds)}>
-          Select Routes
-        </button>
+        <footer className="ticket-selection-modal__actions">
+          <button type="button" disabled={!canConfirm} onClick={() => onConfirm(selectedTicketIds)}>
+            Select Routes
+          </button>
+        </footer>
       </section>
     </div>
   );

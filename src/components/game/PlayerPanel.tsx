@@ -19,8 +19,21 @@ interface PlayerPanelProps {
     fromName: string;
     toName: string;
     points: number;
+    category: 'regular' | 'long';
     status: 'connected' | 'station' | 'incomplete';
   }>;
+  pendingTicketSelection?: {
+    mode: 'setup' | 'turn';
+    minKeep: number;
+    minimized: boolean;
+    tickets: Array<{
+      id: string;
+      fromName: string;
+      toName: string;
+      points: number;
+      category: 'regular' | 'long';
+    }>;
+  };
   activeDestinationScore: number;
   activeProjectedTotal: number;
   canDrawTrainCards: boolean;
@@ -36,6 +49,7 @@ interface PlayerPanelProps {
   onDrawFaceUpCard: (index: number) => void;
   onDrawDeckCard: () => void;
   onDrawDestinationTickets: () => void;
+  onReviewPendingDestinationTickets: () => void;
   onBeginPlaceStation: () => void;
   onOpenScoreBreakdown: () => void;
   onResetGame: () => void;
@@ -53,6 +67,7 @@ export function PlayerPanel({
   destinationTicketDeckCount,
   cardsDrawnThisTurn,
   activeTicketSummaries,
+  pendingTicketSelection,
   activeDestinationScore,
   activeProjectedTotal,
   canDrawTrainCards,
@@ -65,6 +80,7 @@ export function PlayerPanel({
   onDrawFaceUpCard,
   onDrawDeckCard,
   onDrawDestinationTickets,
+  onReviewPendingDestinationTickets,
   onBeginPlaceStation,
   onOpenScoreBreakdown,
   onResetGame,
@@ -144,6 +160,32 @@ export function PlayerPanel({
           </div>
 
           <div className="owned-ticket-list">
+            {pendingTicketSelection && (
+              <div className="pending-ticket-selection-group">
+                <p className="pending-ticket-selection-status">
+                  Destination selection pending, keep at least {pendingTicketSelection.minKeep}
+                </p>
+                {pendingTicketSelection.tickets.map((ticket) => (
+                  <article key={ticket.id} className="owned-ticket pending-ticket" data-status="pending">
+                    <strong>
+                      {ticket.fromName} to {ticket.toName}
+                    </strong>
+                    <span>
+                      <span className="ticket-category-badge">Pending</span>
+                      {ticket.category === 'long' ? 'LONG | ' : ''}
+                      {ticket.points} points
+                    </span>
+                  </article>
+                ))}
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={onReviewPendingDestinationTickets}
+                >
+                  {pendingTicketSelection.minimized ? 'Review tickets' : 'Open selection'}
+                </button>
+              </div>
+            )}
             {activeTicketSummaries.length > 0 ? (
               activeTicketSummaries.map((ticket) => (
                 <article key={ticket.id} className="owned-ticket" data-status={ticket.status}>
@@ -151,6 +193,7 @@ export function PlayerPanel({
                     {ticket.fromName} to {ticket.toName}
                   </strong>
                   <span>
+                    {ticket.category === 'long' ? 'LONG | ' : ''}
                     {ticket.points} points |{' '}
                     {ticket.status === 'connected'
                       ? 'Connected'
@@ -160,9 +203,9 @@ export function PlayerPanel({
                   </span>
                 </article>
               ))
-            ) : (
+            ) : !pendingTicketSelection ? (
               <p className="empty-note">No destination tickets.</p>
-            )}
+            ) : null}
           </div>
 
           <button

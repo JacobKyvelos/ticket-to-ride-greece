@@ -237,12 +237,17 @@ select {
 
 .lobby-config {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
   gap: 14px;
-  align-items: center;
   padding: 12px;
   border: 1px solid rgb(89 64 32 / 28%);
   background: rgb(255 252 242 / 50%);
+}
+
+.lobby-config-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
 }
 
 .lobby-config p {
@@ -347,7 +352,7 @@ select {
 }
 
 .panel-actions button,
-.destination-ticket-list > button,
+.destination-ticket-list button,
 .station-action-section > button,
 .score-preview > button,
 .payment-options button,
@@ -361,7 +366,7 @@ select {
 }
 
 .panel-actions button:hover,
-.destination-ticket-list > button:hover,
+.destination-ticket-list button:hover,
 .station-action-section > button:hover,
 .score-preview > button:hover,
 .payment-options button:hover,
@@ -722,6 +727,27 @@ button:disabled:hover {
   font-size: 0.88rem;
 }
 
+.pending-ticket-selection-group {
+  display: grid;
+  gap: 8px;
+}
+
+.pending-ticket-selection-status {
+  margin: 0;
+  color: #5b4a2e;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.pending-ticket {
+  border-style: dashed;
+}
+
+.pending-ticket[data-status='pending'] {
+  border-color: rgb(79 53 24 / 28%);
+  background: rgb(255 252 242 / 56%);
+}
+
 .owned-ticket[data-status='connected'],
 .owned-ticket[data-status='station'] {
   border-color: rgb(69 128 79 / 56%);
@@ -782,6 +808,28 @@ button:disabled:hover {
   line-height: 1.1;
 }
 
+.ticket-selection-modal__header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.ticket-selection-modal__header .secondary-button {
+  min-height: 34px;
+  border: 1px solid #4f3518;
+  background: #fff;
+  color: #4f3518;
+  cursor: pointer;
+  font-weight: 800;
+  padding: 5px 10px;
+}
+
+.ticket-selection-modal__header .secondary-button:hover,
+.ticket-selection-modal__header .secondary-button:focus-visible {
+  background: #eef2f1;
+}
+
 .destination-ticket-card {
   display: grid;
   grid-template-columns: 30px 1fr;
@@ -829,7 +877,25 @@ button:disabled:hover {
   display: block;
 }
 
-.ticket-selection-modal > button {
+.ticket-category-badge {
+  display: inline-block;
+  margin-right: 8px;
+  padding: 2px 6px;
+  border: 1px solid rgb(79 53 24 / 45%);
+  background: rgb(79 53 24 / 12%);
+  color: #4f3518;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ticket-selection-modal__actions {
+  display: flex;
+  justify-content: end;
+}
+
+.ticket-selection-modal__actions button {
   justify-self: end;
   min-height: 40px;
   min-width: 150px;
@@ -840,7 +906,7 @@ button:disabled:hover {
   font-weight: 800;
 }
 
-.ticket-selection-modal > button:hover {
+.ticket-selection-modal__actions button:hover {
   background: #1f6f8b;
 }
 
